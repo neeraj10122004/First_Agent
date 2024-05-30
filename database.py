@@ -55,6 +55,8 @@ for query in queries:
     # execute queries
     cursor.execute(query)
 
+
+
 # Step 4: Insert data into tables Agents, Orders and Customers
 insert_query = """
 INSERT INTO SUPPLIER VALUES ('A001','Samsung Electronics', 'Seoul, South Korea', '800-726-7864');
@@ -96,7 +98,9 @@ list_of_queries = []
 list_of_queries.append("SELECT * FROM SUPPLIER")
 list_of_queries.append("SELECT * FROM PRODUCT")
 list_of_queries.append("SELECT * FROM INVENTORY")
-
+list_of_queries.append("""SELECT SUM(QUANTITY) - SUM(MIN_STOCK) AS excess_inventory
+FROM INVENTORY
+WHERE PRODUCT_ID = 'Google Pixel 6';""")
 # execute queries
 for query in list_of_queries:
     cursor.execute(query)

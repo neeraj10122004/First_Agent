@@ -1,16 +1,13 @@
 import google.generativeai as genai
-import getpass
-import os
 import sqlite3
+import streamlit as st
 
 gemini_api_key = "AIzaSyDYfQmz7AHGbtvY4l5UJGVCa8JJgJrDjaQ"
 genai.configure(api_key = gemini_api_key)
 model = genai.GenerativeModel('gemini-pro')
 
 memory=[]
-
-prompt=input("enter the prompt")
-
+st.title("First_Agent")
 
 def Generate_SQL_Query(question, memory, schema):
     print("\n\ngenerating query\n\n")
@@ -125,25 +122,45 @@ def Agent(question,memory):
         memory.append({question:str(data)})
         print(question)
         print(memory)
-        Agent(question, memory)
+        return Agent(question, memory)
     
     if "Calculator" in tool_selection:
         memory.append({question:Ask_Math_Question_To_LLM(question, memory)})
         print(question)
         print(memory)
-        Agent(question, memory)
+        return Agent(question, memory)
 
     if "Generate Final Answer" in tool_selection:
         print("\n\ngenerating final answer\n\n")
         mem=""
         for i in memory:
             mem+=str(i)+"\n\n"
+        print(mem)
         model = genai.GenerativeModel('gemini-pro')
         Final_Output= model.generate_content(
-        question+"give answer base on the memory given"+"memory :"+mem,
+        "give answer for this question:"+question+"based on the "+"memory :"+mem,
         generation_config=genai.types.GenerationConfig(
             temperature=0)
         )
-        return Final_Output.text
+        print(f"\n\nFINAL OUTPUT : {Final_Output.text}\n\n")
 
-print(Agent(prompt,memory))
+        return str(Final_Output.text)
+
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
+
+if prompt := st.chat_input("What is up?"):
+    st.session_state.messages.append({"role": "user", "content": prompt})
+
+    with st.chat_message("user"):
+        st.markdown(prompt)
+
+    with st.chat_message("assistant"):
+        response=str(Agent(prompt,memory))
+        print(f"\n\nRECIVED OUTPUT : {response}\n\n")
+        st.markdown(response)
+    st.session_state.messages.append({"role": "assistant", "content": response})
